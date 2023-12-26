@@ -9,24 +9,94 @@ class Polygon {
     }
   }
 
+  static union(polys) {
+    Polygon.multiBreak(polys);
+    const keptSegments = [];
+    for (let i = 0; i < polys.length; i++) {
+      for (const seg of polys[i].segments) {
+        let keep = true;
+        for (let j = 0; j < polys.length; j++) {
+          if (i !== j) {
+            if (polys[j].containsSegment(seg)) {
+              keep = false;
+              break;
+            }
+          }
+        }
+        if (keep) {
+          keptSegments.push(seg);
+        }
+      }
+    }
+    return keptSegments;
+  }
+
+  static multiBreak(polys) {
+    for (let i = 0; i < polys.length - 1; i++) {
+      for (let j = i + 1; j < polys.length; j++) {
+        Polygon.break(polys[i], polys[j]);
+      }
+    }
+  }
+
   static break(poly1, poly2) {
     const segs1 = poly1.segments;
     const segs2 = poly2.segments;
-    segs1.forEach((seg1, i) => {
-      segs2.forEach((seg2, j) => {
-        const int = getIntersection(seg1.p1, seg1.p2, seg2.p1, seg2.p2);
-
+    for (let i = 0; i < segs1.length; i++) {
+      for (let j = 0; j < segs2.length; j++) {
+        const int = getIntersection(
+          segs1[i].p1,
+          segs1[i].p2,
+          segs2[j].p1,
+          segs2[j].p2
+        );
         if (int && int.offset !== 1 && int.offset !== 0) {
           const point = new Point(int.x, int.y);
-          let aux = seg1.p2;
-          seg1.p2 = point;
+          let aux = segs1[i].p2;
+          segs1[i].p2 = point;
           segs1.splice(i + 1, 0, new Segment(point, aux));
-          aux = seg2.p2;
-          seg2.p2 = point;
+          aux = segs2[j].p2;
+          segs2[j].p2 = point;
           segs2.splice(j + 1, 0, new Segment(point, aux));
         }
-      });
-    });
+      }
+    }
+  }
+
+  containsSegment(seg) {
+    const midpoint = average(seg.p1, seg.p2);
+    return this.containsPoint(midpoint);
+  }
+
+  distanceToPoint(point) {
+    return Math.min(...this.segments.map((s) => s.distanceToPoint(point)));
+  }
+
+  distanceToPoly(poly) {
+    return Math.min(...this.points.map((p) => poly.distanceToPoint(p)));
+  }
+
+  intersectsPoly(poly) {
+    for (let s1 of this.segments) {
+      for (let s2 of poly.segments) {
+        if (getIntersection(s1.p1, s1.p2, s2.p1, s2.p2)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  containsPoint(point) {
+    const outerPoint = new Point(-1000, -1000);
+    let intersectionCount = 0;
+    for (const seg of this.segments) {
+      const int = getIntersection(outerPoint, point, seg.p1, seg.p2);
+      if (int) {
+        intersectionCount++;
+      }
+    }
+    return intersectionCount % 2 === 1; // even = does not contain, odd = does contain
   }
 
   drawSegments(ctx) {

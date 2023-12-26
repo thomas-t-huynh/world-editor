@@ -11,11 +11,16 @@
   <div id="controls">
     <button onclick="dispose()">🗑️</button>
     <button onclick="save()">💾</button>
+    &nbsp;
+    <button id="graphBtn" onclick="setMode('graph')">🌐</button>
+    <button id="stopBtn" onclick="setMode('stop')">🛑</button>
   </div>
 
   <script src="js/graphEditor.js"></script>
   <script src="js/world.js"></script>
   <script src="js/viewport.js"></script>
+  <script src="js/items/tree.js"></script>
+  <script src="js/items/building.js"></script>
   <script src="js/math/graph.js"></script>
   <script src="js/math/utils.js"></script>
   <script src="js/primitives/point.js"></script>
@@ -35,12 +40,18 @@
     const viewport = new Viewport(myCanvas);
     const graphEditor = new GraphEditor(viewport, graph);
 
+    let oldGraphHash = graph.hash();
     animate();
 
     function animate() {
       viewport.reset();
-      world.generate();
-      world.draw(ctx);
+      if (graph.hash() !== oldGraphHash) {
+        world.generate();
+        oldGraphHash = graph.hash();
+      }
+      const viewpoint = scale(viewport.getOffset(), -1);
+      world.draw(ctx, viewpoint);
+      ctx.globalAlpha = 0.3;
       graphEditor.display();
       requestAnimationFrame(animate);
     }
