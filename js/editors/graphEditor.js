@@ -18,37 +18,29 @@ class GraphEditor {
 
   disable() {
     this.#removeEventListeners();
+    this.selected = null;
+    this.hovered = null;
   }
 
   #addEventListeners() {
-    this.canvas.addEventListener('mousedown', (evt) =>
-      this.#handleMouseDown(evt)
-    );
-    this.canvas.addEventListener('mousemove', this.#handleMouseMove.bind(this));
-    this.canvas.addEventListener(
-      'mousewheel',
-      this.#handleMouseWheel.bind(this)
-    );
-    this.canvas.addEventListener('contextmenu', (evt) => evt.preventDefault());
-    this.canvas.addEventListener('mouseup', () => (this.dragging = false));
+    this.boundMouseDown = this.#handleMouseDown.bind(this);
+    this.boundMouseMove = this.#handleMouseMove.bind(this);
+    this.boundMouseUp = () => (this.dragging = false);
+    this.boundContextMenu = (evt) => evt.preventDefault();
+    this.boundMouseWheel = this.#handleMouseWheel.bind(this);
+    this.canvas.addEventListener('mousedown', this.boundMouseDown);
+    this.canvas.addEventListener('mousemove', this.boundMouseMove);
+    this.canvas.addEventListener('mousewheel', this.boundMouseWheel);
+    this.canvas.addEventListener('mouseup', this.boundMouseUp);
+    this.canvas.addEventListener('contextmenu', this.boundContextMenu);
   }
 
   #removeEventListeners() {
-    this.canvas.removeEventListener('mousedown', (evt) =>
-      this.#handleMouseDown(evt)
-    );
-    this.canvas.removeEventListener(
-      'mousemove',
-      this.#handleMouseMove.bind(this)
-    );
-    this.canvas.removeEventListener(
-      'mousewheel',
-      this.#handleMouseWheel.bind(this)
-    );
-    this.canvas.removeEventListener('contextmenu', (evt) =>
-      evt.preventDefault()
-    );
-    this.canvas.removeEventListener('mouseup', () => (this.dragging = false));
+    this.canvas.removeEventListener('mousedown', this.boundMouseDown);
+    this.canvas.removeEventListener('mousemove', this.boundMouseMove);
+    this.canvas.removeEventListener('mousewheel', this.boundMouseWheel);
+    this.canvas.removeEventListener('mouseup', this.boundMouseUp);
+    this.canvas.removeEventListener('contextmenu', this.boundContextMenu);
   }
 
   #removePoint(point) {
